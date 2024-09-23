@@ -4,8 +4,8 @@ on:
   push:
     branches:
       - metadata  # Trigger only on the 'metadata' branch
-    # paths:
-    #   - 'executions/**/test-report.html'  # File path pattern for test-report.html
+    paths:
+      - 'executions/**/test-report.html'  # File path pattern for test-report.html
 
 jobs:
   process-test-report:
@@ -14,40 +14,29 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
-    
+    # For debugging purpose
     - name: Dump GitHub context
       env:
         GITHUB_CONTEXT: ${{ toJSON(github) }}
       run: echo "$GITHUB_CONTEXT"
 
+    - uses: dorny/paths-filter@v3
+      id: filter
+      with:
+        # Enable listing of files matching each filter.
+        # Paths to files will be available in `${FILTER_NAME}_files` output variable.
+        # Paths will be escaped and space-delimited.
+        # Output is usable as command-line argument list in Linux shell
+        list-files: shell
 
-    - name: Check for test-report.html
-      id: check_report
-      run: |
-        # Get the modified files
-        MODIFIED_FILES=$(echo "${{ github.event.head_commit.modified }}" | tr ' ' '\n')
+        # Detect changes against the most recent commit on the same branch before the push
+        base: ${{ github.ref }}
 
-        # Initialize a variable to store the report path
-        REPORT_PATH=""
+        # Only filters added or modified files.
+        filters: |
+          test_report:
+            - added|modified: 'executions/**/test-report.html'
 
-        # Loop through modified files and find the test-report.html
-        for file in $MODIFIED_FILES; do
-          if [[ "$file" == *"/executions/"* && "$file" == *"test-report.html" ]]; then
-            REPORT_PATH="$file"
-            break
-          fi
-        done
-
-        # Output the report path or indicate it was not found
-        if [[ -n "$REPORT_PATH" ]]; then
-          echo "Test report found at: $REPORT_PATH"
-          echo "report_path=$REPORT_PATH" >> $GITHUB_ENV
-        else
-          echo "No test report found."
-          echo "report_path=" >> $GITHUB_ENV
-        fi
-
-    - name: Further actions
-      if: env.report_path != ''
-      run: echo "Proceeding with report located at ${{ env.report_path }}."
-
+    - name: Print File
+      if: ${{ steps.filter.outputs.test_report == 'true' }}
+      run: echo ${{ steps.filter.outputs.test_report_files }}
