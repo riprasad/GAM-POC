@@ -1,0 +1,53 @@
+name: Trigger Auto Merge
+
+on:
+  push:
+    branches:
+      - metadata  # Trigger only on the 'metadata' branch
+    paths:
+      - 'executions/**/test-report.html'  # File path pattern for test-report.html
+
+jobs:
+  process-test-report:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    
+    - name: Dump GitHub context
+      env:
+        GITHUB_CONTEXT: ${{ toJSON(github) }}
+      run: echo "$GITHUB_CONTEXT"
+
+
+    - name: Check for test-report.html
+      id: check_report
+      run: |
+        # Get the modified files
+        MODIFIED_FILES=$(echo "${{ github.event.head_commit.modified }}" | tr ' ' '\n')
+
+        # Initialize a variable to store the report path
+        REPORT_PATH=""
+
+        # Loop through modified files and find the test-report.html
+        for file in $MODIFIED_FILES; do
+          if [[ "$file" == *"/executions/"* && "$file" == *"test-report.html" ]]; then
+            REPORT_PATH="$file"
+            break
+          fi
+        done
+
+        # Output the report path or indicate it was not found
+        if [[ -n "$REPORT_PATH" ]]; then
+          echo "Test report found at: $REPORT_PATH"
+          echo "report_path=$REPORT_PATH" >> $GITHUB_ENV
+        else
+          echo "No test report found."
+          echo "report_path=" >> $GITHUB_ENV
+        fi
+
+    - name: Further actions
+      if: env.report_path != ''
+      run: echo "Proceeding with report located at ${{ env.report_path }}."
+
