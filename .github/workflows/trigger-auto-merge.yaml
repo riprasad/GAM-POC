@@ -4,8 +4,8 @@ on:
   push:
     branches:
       - metadata  # Trigger only on the 'metadata' branch
-    # paths:
-    #   - 'executions/**/test-report.html'  # File path pattern for test-report.html
+    paths:
+      - 'executions/**/test-report.html'  # File path pattern for test-report.html
 
 jobs:
   process-test-report:
