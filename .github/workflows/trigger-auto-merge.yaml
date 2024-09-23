@@ -24,7 +24,7 @@ jobs:
         list-files: shell
 
         # Detect changes against the most recent commit on the same branch before the push
-        base: ${{ github.ref }}
+        base: ${{ github.sha }}
 
         # In this example changed files will be checked by linter.
         # It doesn't make sense to lint deleted files.
