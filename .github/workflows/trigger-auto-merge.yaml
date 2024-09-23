@@ -34,5 +34,5 @@ jobs:
             - added|modified: 'executions/**/test-report.html'
 
     - name: Print File
-      if: ${{ steps.filter.outputs.test-report == 'true' }}
+      if: ${{ steps.filter.outputs.test_report == 'true' }}
       run: echo ${{ steps.filter.outputs.test_report_files }}
