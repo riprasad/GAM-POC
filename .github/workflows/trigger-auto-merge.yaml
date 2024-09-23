@@ -14,6 +14,12 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
+    # For debugging purpose
+    - name: Dump GitHub context
+      env:
+        GITHUB_CONTEXT: ${{ toJSON(github) }}
+      run: echo "$GITHUB_CONTEXT"
+
     - uses: dorny/paths-filter@v3
       id: filter
       with:
@@ -24,11 +30,9 @@ jobs:
         list-files: shell
 
         # Detect changes against the most recent commit on the same branch before the push
-        base: ${{ github.sha }}
+        base: ${{ github.ref }}
 
-        # In this example changed files will be checked by linter.
-        # It doesn't make sense to lint deleted files.
-        # Therefore we specify we are only interested in added or modified files.
+        # Only filters added or modified files.
         filters: |
           test_report:
             - added|modified: 'executions/**/test-report.html'
